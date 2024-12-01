@@ -46,6 +46,8 @@ node = {
         {
             'id': 2,
             'name': 'val',
+            'x': 0,
+            'y': junction_y*2,
         },
     ]
 }
@@ -53,11 +55,12 @@ node = {
 node_distance = {
     'id': 1,
     'name': 'distance',
-    'val': '10',
+    'val': '0',
     'x': 300,
     'y': 400,
     'w': 200,
     'h': 100,
+    'junctions_in': [],
     'junctions_out': [
         {
             'id': 0,
@@ -71,11 +74,12 @@ node_distance = {
 node_time = {
     'id': 2,
     'name': 'time',
-    'val': '2',
+    'val': '0',
     'x': 300,
     'y': 600,
     'w': 200,
     'h': 100,
+    'junctions_in': [],
     'junctions_out': [
         {
             'id': 0,
@@ -100,6 +104,8 @@ line_creating = False
 line_starting_x = -1 
 line_starting_y = -1
 
+node_focus_id = -1
+
 
 running = True
 while running:
@@ -122,8 +128,53 @@ while running:
                 node_snap = True
             if event.key == pygame.K_UP:
                 for node in nodes:
-                    if node['name'] == 'distance':
+                    if node['id'] == node_focus_id:
                         node['val'] = str(float(node['val'])+1)
+            if event.key == pygame.K_0:
+                for node in nodes:
+                    if node['id'] == node_focus_id:
+                        node['val'] += '0'
+            if event.key == pygame.K_1:
+                for node in nodes:
+                    if node['id'] == node_focus_id:
+                        node['val'] += '1'
+            if event.key == pygame.K_2:
+                for node in nodes:
+                    if node['id'] == node_focus_id:
+                        node['val'] += '2'
+            if event.key == pygame.K_3:
+                for node in nodes:
+                    if node['id'] == node_focus_id:
+                        node['val'] += '3'
+            if event.key == pygame.K_4:
+                for node in nodes:
+                    if node['id'] == node_focus_id:
+                        node['val'] += '4'
+            if event.key == pygame.K_5:
+                for node in nodes:
+                    if node['id'] == node_focus_id:
+                        node['val'] += '5'
+            if event.key == pygame.K_6:
+                for node in nodes:
+                    if node['id'] == node_focus_id:
+                        node['val'] += '6'
+            if event.key == pygame.K_7:
+                for node in nodes:
+                    if node['id'] == node_focus_id:
+                        node['val'] += '7'
+            if event.key == pygame.K_8:
+                for node in nodes:
+                    if node['id'] == node_focus_id:
+                        node['val'] += '8'
+            if event.key == pygame.K_9:
+                for node in nodes:
+                    if node['id'] == node_focus_id:
+                        node['val'] += '9'
+            if event.key == pygame.K_BACKSPACE:
+                for node in nodes:
+                    if node['id'] == node_focus_id:
+                        if len(node['val']) > 1:
+                            node['val'] = node['val'][:-1]
 
     screen.fill('#1d1d1d')
 
@@ -156,18 +207,11 @@ while running:
                 node_y = node['y']
                 node_w = node['w']
                 node_h = node['h']
-                if (mouse_x > node_x + node_w - junction_size and
-                    mouse_x < node_x + node_w + junction_size and
-                    mouse_y > node_y + 30 - junction_size and
-                    mouse_y < node_y + 30 + junction_size):
-                    print('junction')
-                    line_creating = True
-                    line_starting_x = mouse_x
-                    line_starting_y = mouse_y
-                elif mouse_x > node_x and mouse_x < node_x + node_w and mouse_y > node_y and mouse_y < node_y + node_h:
+                if mouse_x > node_x and mouse_x < node_x + node_w and mouse_y > node_y and mouse_y < node_y + node_h:
                     node_drag_id = node_i
                     node_drag_off_x = mouse_x - node['x']
                     node_drag_off_y = mouse_y - node['y']
+                    node_focus_id = node['id']
         mouse_left_pressed = True
     else:
         if line_creating:
@@ -238,13 +282,33 @@ while running:
             (node['x'], node['y'], node['w'], node['h']), 
             0,
         )
-        
+        pygame.draw.rect(
+            screen, '#808080', 
+            (node['x'], node['y'], node['w'], node['h']), 
+            1,
+        )
+        if node_focus_id != -1:
+            for _node in nodes:
+                if _node['id'] == node_focus_id:
+                    pygame.draw.rect(
+                        screen, '#b0b0b0', 
+                        (_node['x'], _node['y'], _node['w'], _node['h']), 
+                        3,
+                    )
+                    break
+
         if 'junctions_in' in node:
             for junction in node['junctions_in']:
                 pygame.draw.circle(
-                    screen, "#ffffff", (node['x'], node['y'] + junction['y']), junction_size, width=0
+                    screen, "#ffffff", (node['x'] + junction['x'], node['y'] + junction['y']), junction_size, width=0
                 )
                 
+        if 'junctions_out' in node:
+            for junction in node['junctions_out']:
+                pygame.draw.circle(
+                    screen, "#ffffff", (node['x'] + junction['x'], node['y'] + junction['y']), junction_size, width=0
+                )
+
         # text
         pygame.font.init()
         font = pygame.font.SysFont('Arial', 16)
@@ -260,7 +324,7 @@ while running:
                 speed = 0
                 distance = 0
                 time = 0
-            
+
                 for junction_in in node['junctions_in']: 
                     if junction_in['name'] == 'distance':
                         node_2_id = junction_in['node_id']
@@ -272,9 +336,12 @@ while running:
                         node_2 = [n for n in nodes if n['id'] == junction_in['node_id']][0]
                         # junction_2 = [j for j in node_2['junctions_out'] if j['id'] == junction_in['junction_id']][0]
                         time = node_2['val']
-                speed = float(distance)/float(time)
-                node['val'] = str(speed)
 
+                if time == '0':
+                    speed = 0
+                else:
+                    speed = float(distance)/float(time)
+                node['val'] = str(speed)
 
     pygame.display.flip()
 
