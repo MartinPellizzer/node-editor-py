@@ -16,7 +16,7 @@ node_color_bg = '#303030'
 junction_size = 8
 junction_y = 48
 
-node = {
+node_speed = {
     'id': 0,
     'name': 'speed',
     'val': '0',
@@ -30,8 +30,8 @@ node = {
             'name': 'distance',
             'x': 0,
             'y': junction_y*1,
-            'node_id': 1,
-            'junction_id': 0,
+            'node_id': -1,
+            'junction_id': -1,
         },
         {
             'id': 1,
@@ -91,7 +91,7 @@ node_time = {
 }
 
 nodes = []
-nodes.append(node)
+nodes.append(node_speed)
 nodes.append(node_distance)
 nodes.append(node_time)
 
@@ -106,6 +106,8 @@ line_starting_y = -1
 
 node_focus_id = -1
 
+line_start_node_id = -1
+line_start_junction_id = -1
 
 running = True
 while running:
@@ -199,7 +201,11 @@ while running:
                             line_creating = True
                             line_starting_x = mouse_x
                             line_starting_y = mouse_y
+                            line_start_node_id = node['id']
+                            line_start_junction_id = junction['id']
                             junction_found = True
+                            print(line_start_node_id)
+                            print(line_start_junction_id)
                             break
                     if junction_found:
                         break
@@ -216,6 +222,31 @@ while running:
     else:
         if line_creating:
             line_creating = False
+            found = False
+            node_end_id = -1
+            junction_end_id = -1
+            for node in nodes:
+                for junction in node['junctions_out']:
+                    junction_x1 = node['x'] + junction['x'] - junction_size
+                    junction_y1 = node['y'] + junction['y'] - junction_size
+                    junction_x2 = node['x'] + junction['x'] + junction_size
+                    junction_y2 = node['y'] + junction['y'] + junction_size
+                    if (mouse_x > junction_x1 and
+                        mouse_x < junction_x2 and
+                        mouse_y > junction_y1 and
+                        mouse_y < junction_y2):
+                        node_end_id = node['id']
+                        junction_end_id = junction['id']
+                        found = True
+                        print(node_end_id)
+                        print(junction_end_id)
+            if found:
+                for node in nodes:
+                    if node['id'] == line_start_node_id:
+                        for junction in node['junctions_in']:
+                            if junction['id'] == line_start_junction_id:
+                                junction['node_id'] = node_end_id
+                                junction['junction_id'] = junction_end_id
 
         mouse_left_pressed = False
         node_drag_id = -1
@@ -328,7 +359,9 @@ while running:
                 for junction_in in node['junctions_in']: 
                     if junction_in['name'] == 'distance':
                         node_2_id = junction_in['node_id']
-                        node_2 = [n for n in nodes if n['id'] == junction_in['node_id']][0]
+                        node_2 = [n for n in nodes if n['id'] == junction_in['node_id']]
+                        if node_2 != []: node_2 = node_2[0]
+                        else: continue
                         # junction_2 = [j for j in node_2['junctions_out'] if j['id'] == junction_in['junction_id']][0]
                         distance = node_2['val']
                     if junction_in['name'] == 'time':
