@@ -59,7 +59,7 @@ def node_time_create(_id, x, y):
     return node
 
 def node_speed_create(_id, x, y):
-    node_speed = {
+    node = {
         'id': _id,
         'name': 'speed',
         'val': '0',
@@ -89,71 +89,61 @@ def node_speed_create(_id, x, y):
             {
                 'id': 2,
                 'name': 'val',
-                'x': 0,
+                'x': 200,
                 'y': junction_y*2,
             },
         ]
     }
-    return node_speed
+    return node
 
+def node_acceleration_create(_id, x, y):
+    node = {
+        'id': _id,
+        'name': 'acceleration',
+        'val': '0',
+        'x': x,
+        'y': y,
+        'w': 200,
+        'h': 200,
+        'junctions_in': [
+            {
+                'id': 0,
+                'name': 'speed end',
+                'x': 0,
+                'y': junction_y*1,
+                'node_id': -1,
+                'junction_id': -1,
+            },
+            {
+                'id': 1,
+                'name': 'speed start',
+                'x': 0,
+                'y': junction_y*2,
+                'node_id': -1,
+                'junction_id': -1,
+            },
+            {
+                'id': 2,
+                'name': 'time',
+                'x': 0,
+                'y': junction_y*3,
+                'node_id': -1,
+                'junction_id': -1,
+            },
+        ],
+        'junctions_out': [
+            {
+                'id': 3,
+                'name': 'val',
+                'x': 200,
+                'y': junction_y*2,
+            },
+        ]
+    }
+    return node
 
-node_speed = {
-    'id': 0,
-    'name': 'speed',
-    'val': '0',
-    'x': 700,
-    'y': 500,
-    'w': 200,
-    'h': 200,
-    'junctions_in': [
-        {
-            'id': 0,
-            'name': 'distance',
-            'x': 0,
-            'y': junction_y*1,
-            'node_id': -1,
-            'junction_id': -1,
-        },
-        {
-            'id': 1,
-            'name': 'time',
-            'x': 0,
-            'y': junction_y*2,
-            'node_id': 2,
-            'junction_id': 0,
-        },
-    ],
-    'junctions_out': [
-        {
-            'id': 2,
-            'name': 'val',
-            'x': 0,
-            'y': junction_y*2,
-        },
-    ]
-}
-
-node_time = {
-    'id': 2,
-    'name': 'time',
-    'val': '0',
-    'x': 300,
-    'y': 600,
-    'w': 200,
-    'h': 100,
-    'junctions_in': [],
-    'junctions_out': [
-        {
-            'id': 0,
-            'name': 'val',
-            'x': 200,
-            'y': junction_y*1,
-        },
-    ],
-}
 
 nodes = []
-# nodes.append(node_speed)
 
 node_drag_off_x = 0
 node_drag_off_y = 0
@@ -190,6 +180,11 @@ widget_add_nodes = {
         'x': 10,
         'y': 70,
         'text': 'speed',
+    },
+    'node_acceleration': {
+        'x': 10,
+        'y': 100,
+        'text': 'acceleration',
     },
 }
 show_widget_add_nodes = False
@@ -295,6 +290,14 @@ while running:
                 y2 = y1 + 30
                 if (mouse_x > x1 and mouse_x < x2 and mouse_y > y1 and mouse_y < y2):
                     node = node_speed_create(len(nodes)+1, mouse_x, mouse_y)
+                    nodes.append(node)
+
+                x1 = widget_add_nodes['x'] + widget_add_nodes['node_acceleration']['x']
+                y1 = widget_add_nodes['y'] + widget_add_nodes['node_acceleration']['y']
+                x2 = x1 + widget_add_nodes['w']
+                y2 = y1 + 30
+                if (mouse_x > x1 and mouse_x < x2 and mouse_y > y1 and mouse_y < y2):
+                    node = node_acceleration_create(len(nodes)+1, mouse_x, mouse_y)
                     nodes.append(node)
 
         for node_i, node in enumerate(nodes):
@@ -461,6 +464,12 @@ while running:
         text_surface = font.render(text, False, '#ffffff')
         screen.blit(text_surface, (x, y))
 
+        x = widget_add_nodes['x'] + widget_add_nodes['node_acceleration']['x']
+        y = widget_add_nodes['y'] + widget_add_nodes['node_acceleration']['y']
+        text = widget_add_nodes['node_acceleration']['text']
+        text_surface = font.render(text, False, '#ffffff')
+        screen.blit(text_surface, (x, y))
+
     # text
     pygame.font.init()
     font = pygame.font.SysFont('Arial', 16)
@@ -495,6 +504,38 @@ while running:
                 except: speed = 0
             node['val'] = str(speed)
 
+        if node['name'] == 'acceleration':
+            speed_end = 0
+            speed_start = 0
+            time = 0
+
+            for junction_in in node['junctions_in']: 
+                if junction_in['name'] == 'speed end':
+                    node_2_id = junction_in['node_id']
+                    node_2 = [n for n in nodes if n['id'] == junction_in['node_id']]
+                    if node_2 != []: node_2 = node_2[0]
+                    else: continue
+                    speed_end = node_2['val']
+                if junction_in['name'] == 'speed start':
+                    node_2_id = junction_in['node_id']
+                    node_2 = [n for n in nodes if n['id'] == junction_in['node_id']]
+                    if node_2 != []: node_2 = node_2[0]
+                    else: continue
+                    speed_start = node_2['val']
+                if junction_in['name'] == 'time':
+                    node_2_id = junction_in['node_id']
+                    node_2 = [n for n in nodes if n['id'] == junction_in['node_id']]
+                    if node_2 != []: node_2 = node_2[0]
+                    else: continue
+                    time = node_2['val']
+
+            if time == '0':
+                acceleration = 0
+            else:
+                try: acceleration = float(float(speed_end)-float(speed_start))/float(time)
+                except: acceleration = 0
+            node['val'] = str(acceleration)
+
     # node
     for node in nodes:
         pygame.draw.rect(
@@ -522,6 +563,8 @@ while running:
                 pygame.draw.circle(
                     screen, "#ffffff", (node['x'] + junction['x'], node['y'] + junction['y']), junction_size, width=0
                 )
+                text_surface = font.render(junction['name'], False, (255, 255, 255))
+                screen.blit(text_surface, (node['x'] + junction['x'] + 30, node['y'] + junction['y']))
                 
         if 'junctions_out' in node:
             for junction in node['junctions_out']:
@@ -533,7 +576,7 @@ while running:
         screen.blit(text_surface, (node['x'], node['y']))
 
         text_surface = font.render(node['val'], False, '#ffffff')
-        screen.blit(text_surface, (node['x'] + 80, node['y']))
+        screen.blit(text_surface, (node['x'] + 130, node['y']))
 
     pygame.display.flip()
 
