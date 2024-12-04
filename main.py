@@ -16,6 +16,48 @@ node_color_bg = '#303030'
 junction_size = 8
 junction_y = 48
 
+def node_distance_create(_id, x, y):
+    node = {
+        'id': _id,
+        'name': 'distance',
+        'val': '0',
+        'x': x,
+        'y': y,
+        'w': 200,
+        'h': 200,
+        'junctions_in': [],
+        'junctions_out': [
+            {
+                'id': 0,
+                'name': 'val',
+                'x': 200,
+                'y': junction_y*2,
+            },
+        ]
+    }
+    return node
+
+def node_time_create(_id, x, y):
+    node = {
+        'id': _id,
+        'name': 'time',
+        'val': '0',
+        'x': x,
+        'y': y,
+        'w': 200,
+        'h': 200,
+        'junctions_in': [],
+        'junctions_out': [
+            {
+                'id': 0,
+                'name': 'val',
+                'x': 200,
+                'y': junction_y*2,
+            },
+        ]
+    }
+    return node
+
 def node_speed_create(_id, x, y):
     node_speed = {
         'id': _id,
@@ -91,25 +133,6 @@ node_speed = {
     ]
 }
 
-node_distance = {
-    'id': 1,
-    'name': 'distance',
-    'val': '0',
-    'x': 300,
-    'y': 400,
-    'w': 200,
-    'h': 100,
-    'junctions_in': [],
-    'junctions_out': [
-        {
-            'id': 0,
-            'name': 'val',
-            'x': 200,
-            'y': junction_y*1,
-        },
-    ]
-}
-
 node_time = {
     'id': 2,
     'name': 'time',
@@ -131,8 +154,6 @@ node_time = {
 
 nodes = []
 # nodes.append(node_speed)
-nodes.append(node_distance)
-nodes.append(node_time)
 
 node_drag_off_x = 0
 node_drag_off_y = 0
@@ -171,7 +192,7 @@ widget_add_nodes = {
         'text': 'speed',
     },
 }
-show_widget_add_nodes = True
+show_widget_add_nodes = False
 
 running = True
 while running:
@@ -252,17 +273,27 @@ while running:
         if not mouse_left_pressed:
             if show_widget_add_nodes == True:
                 show_widget_add_nodes = False
-                node_distance_x1 = widget_add_nodes['x'] + widget_add_nodes['node_distance']['x']
-                node_distance_y1 = widget_add_nodes['y'] + widget_add_nodes['node_distance']['y']
-                node_distance_x2 = node_distance_x1 + widget_add_nodes['w']
-                node_distance_y2 = node_distance_y1 + 30
-                if (mouse_x > node_distance_x1 and
-                    mouse_x < node_distance_x2 and
-                    mouse_y > node_distance_y1 and
-                    mouse_y < node_distance_y2):
-                    print('test')
-                    ## create node (ex. speed)
-                    print(len(nodes)+1)
+                x1 = widget_add_nodes['x'] + widget_add_nodes['node_distance']['x']
+                y1 = widget_add_nodes['y'] + widget_add_nodes['node_distance']['y']
+                x2 = x1 + widget_add_nodes['w']
+                y2 = y1 + 30
+                if (mouse_x > x1 and mouse_x < x2 and mouse_y > y1 and mouse_y < y2):
+                    node = node_distance_create(len(nodes)+1, mouse_x, mouse_y)
+                    nodes.append(node)
+
+                x1 = widget_add_nodes['x'] + widget_add_nodes['node_time']['x']
+                y1 = widget_add_nodes['y'] + widget_add_nodes['node_time']['y']
+                x2 = x1 + widget_add_nodes['w']
+                y2 = y1 + 30
+                if (mouse_x > x1 and mouse_x < x2 and mouse_y > y1 and mouse_y < y2):
+                    node = node_time_create(len(nodes)+1, mouse_x, mouse_y)
+                    nodes.append(node)
+
+                x1 = widget_add_nodes['x'] + widget_add_nodes['node_speed']['x']
+                y1 = widget_add_nodes['y'] + widget_add_nodes['node_speed']['y']
+                x2 = x1 + widget_add_nodes['w']
+                y2 = y1 + 30
+                if (mouse_x > x1 and mouse_x < x2 and mouse_y > y1 and mouse_y < y2):
                     node = node_speed_create(len(nodes)+1, mouse_x, mouse_y)
                     nodes.append(node)
 
@@ -341,46 +372,6 @@ while running:
             widget_add_nodes['x'] = mouse_x
             widget_add_nodes['y'] = mouse_y
             show_widget_add_nodes = not show_widget_add_nodes
-
-            ## create node (ex. speed)
-            '''
-            node = {
-                'id': 0,
-                'name': 'speed',
-                'val': '0',
-                'x': 700,
-                'y': 500,
-                'w': 200,
-                'h': 200,
-                'junctions_in': [
-                    {
-                        'id': 0,
-                        'name': 'distance',
-                        'x': 0,
-                        'y': junction_y*1,
-                        'node_id': -1,
-                        'junction_id': -1,
-                    },
-                    {
-                        'id': 1,
-                        'name': 'time',
-                        'x': 0,
-                        'y': junction_y*2,
-                        'node_id': 2,
-                        'junction_id': 0,
-                    },
-                ],
-                'junctions_out': [
-                    {
-                        'id': 2,
-                        'name': 'val',
-                        'x': 0,
-                        'y': junction_y*2,
-                    },
-                ]
-            }
-            nodes.append(node)
-            '''
     else:
         if pygame.mouse.get_pressed()[2] == False: 
             mouse_button_right_clicked = False
@@ -441,6 +432,69 @@ while running:
                         )
                 
 
+    # draw widgets
+    if show_widget_add_nodes:
+        x = widget_add_nodes['x']
+        y = widget_add_nodes['y']
+        w = widget_add_nodes['w']
+        h = widget_add_nodes['h']
+        pygame.draw.rect(
+            screen, node_color_bg, 
+            (x, y, w, h), 
+            0,
+        )
+        x = widget_add_nodes['x'] + widget_add_nodes['node_distance']['x']
+        y = widget_add_nodes['y'] + widget_add_nodes['node_distance']['y']
+        text = widget_add_nodes['node_distance']['text']
+        text_surface = font.render(text, False, '#ffffff')
+        screen.blit(text_surface, (x, y))
+
+        x = widget_add_nodes['x'] + widget_add_nodes['node_time']['x']
+        y = widget_add_nodes['y'] + widget_add_nodes['node_time']['y']
+        text = widget_add_nodes['node_time']['text']
+        text_surface = font.render(text, False, '#ffffff')
+        screen.blit(text_surface, (x, y))
+
+        x = widget_add_nodes['x'] + widget_add_nodes['node_speed']['x']
+        y = widget_add_nodes['y'] + widget_add_nodes['node_speed']['y']
+        text = widget_add_nodes['node_speed']['text']
+        text_surface = font.render(text, False, '#ffffff')
+        screen.blit(text_surface, (x, y))
+
+    # text
+    pygame.font.init()
+    font = pygame.font.SysFont('Arial', 16)
+
+    # calc
+    for node in nodes:
+        if node['name'] == 'speed':
+            speed = 0
+            distance = 0
+            time = 0
+
+            for junction_in in node['junctions_in']: 
+                if junction_in['name'] == 'distance':
+                    node_2_id = junction_in['node_id']
+                    node_2 = [n for n in nodes if n['id'] == junction_in['node_id']]
+                    if node_2 != []: node_2 = node_2[0]
+                    else: continue
+                    # junction_2 = [j for j in node_2['junctions_out'] if j['id'] == junction_in['junction_id']][0]
+                    distance = node_2['val']
+                if junction_in['name'] == 'time':
+                    node_2_id = junction_in['node_id']
+                    node_2 = [n for n in nodes if n['id'] == junction_in['node_id']]
+                    if node_2 != []: node_2 = node_2[0]
+                    else: continue
+                    # junction_2 = [j for j in node_2['junctions_out'] if j['id'] == junction_in['junction_id']][0]
+                    time = node_2['val']
+
+            if time == '0':
+                speed = 0
+            else:
+                try: speed = float(distance)/float(time)
+                except: speed = 0
+            node['val'] = str(speed)
+
     # node
     for node in nodes:
         pygame.draw.rect(
@@ -475,73 +529,11 @@ while running:
                     screen, "#ffffff", (node['x'] + junction['x'], node['y'] + junction['y']), junction_size, width=0
                 )
 
-        # text
-        pygame.font.init()
-        font = pygame.font.SysFont('Arial', 16)
         text_surface = font.render(node['name'], False, (255, 255, 255))
         screen.blit(text_surface, (node['x'], node['y']))
 
         text_surface = font.render(node['val'], False, '#ffffff')
         screen.blit(text_surface, (node['x'] + 80, node['y']))
-
-        # draw widgets
-        if show_widget_add_nodes:
-            x = widget_add_nodes['x']
-            y = widget_add_nodes['y']
-            w = widget_add_nodes['w']
-            h = widget_add_nodes['h']
-            pygame.draw.rect(
-                screen, node_color_bg, 
-                (x, y, w, h), 
-                0,
-            )
-            x = widget_add_nodes['x'] + widget_add_nodes['node_distance']['x']
-            y = widget_add_nodes['y'] + widget_add_nodes['node_distance']['y']
-            text = widget_add_nodes['node_distance']['text']
-            text_surface = font.render(text, False, '#ffffff')
-            screen.blit(text_surface, (x, y))
-
-            x = widget_add_nodes['x'] + widget_add_nodes['node_time']['x']
-            y = widget_add_nodes['y'] + widget_add_nodes['node_time']['y']
-            text = widget_add_nodes['node_time']['text']
-            text_surface = font.render(text, False, '#ffffff')
-            screen.blit(text_surface, (x, y))
-
-            x = widget_add_nodes['x'] + widget_add_nodes['node_speed']['x']
-            y = widget_add_nodes['y'] + widget_add_nodes['node_speed']['y']
-            text = widget_add_nodes['node_speed']['text']
-            text_surface = font.render(text, False, '#ffffff')
-            screen.blit(text_surface, (x, y))
-
-        # calc
-        for node in nodes:
-            if node['name'] == 'speed':
-                speed = 0
-                distance = 0
-                time = 0
-
-                for junction_in in node['junctions_in']: 
-                    if junction_in['name'] == 'distance':
-                        node_2_id = junction_in['node_id']
-                        node_2 = [n for n in nodes if n['id'] == junction_in['node_id']]
-                        if node_2 != []: node_2 = node_2[0]
-                        else: continue
-                        # junction_2 = [j for j in node_2['junctions_out'] if j['id'] == junction_in['junction_id']][0]
-                        distance = node_2['val']
-                    if junction_in['name'] == 'time':
-                        node_2_id = junction_in['node_id']
-                        node_2 = [n for n in nodes if n['id'] == junction_in['node_id']]
-                        if node_2 != []: node_2 = node_2[0]
-                        else: continue
-                        # junction_2 = [j for j in node_2['junctions_out'] if j['id'] == junction_in['junction_id']][0]
-                        time = node_2['val']
-
-                if time == '0':
-                    speed = 0
-                else:
-                    try: speed = float(distance)/float(time)
-                    except: speed = 0
-                node['val'] = str(speed)
 
     pygame.display.flip()
 
